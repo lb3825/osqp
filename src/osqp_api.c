@@ -715,14 +715,14 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
 
   // Main ADMM algorithm
 
-  FILE *fp = fopen("../plot/residuals.csv", "w");
-  if (fp == NULL) {
-    perror("Unable to open file");
-    exitflag = 1;
-    goto exit;
-  }
+  // FILE *fp = fopen("../plot/residuals.csv", "w");
+  // if (fp == NULL) {
+  //   perror("Unable to open file");
+  //   exitflag = 1;
+  //   goto exit;
+  // }
 
-  fprintf(fp, "iteration,prim_res,dual_res,duality_gap,restart\n");
+  // fprintf(fp, "iteration,prim_res,dual_res,duality_gap,restart\n");
 
   max_iter = settings->max_iter;
   for (iter = 1; iter <= max_iter; iter++) {
@@ -1014,8 +1014,8 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
     }
 
     // Saving prim_res, dual_res, duality_gap, and did_restart to csv
-    fprintf(fp, "%d,%f,%f,%f,%d\n", 
-      iter, solver->info->prim_res, solver->info->dual_res, solver->info->duality_gap, did_restart);
+    // fprintf(fp, "%d,%f,%f,%f,%d\n", 
+    //   iter, solver->info->prim_res, solver->info->dual_res, solver->info->duality_gap, did_restart);
 
     // Check algorithm termination if desired
     if (can_check_termination) {
@@ -1064,8 +1064,8 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
 #endif /* ifdef OSQP_ENABLE_PRINTING */
   }        // End of ADMM for loop
 
-  // Close csv file
-  fclose(fp);
+  // // Close csv file
+  // fclose(fp);
 
 
   // Update information and check termination condition if it hasn't been done
