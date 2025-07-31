@@ -5,40 +5,19 @@
 int main(void) {
 
   /* Load problem data */
-  // OSQPFloat P_x[3] = { 4.0, 1.0, 2.0, };
-  // OSQPInt   P_nnz  = 3;
-  // OSQPInt   P_i[3] = { 0, 0, 1, };
-  // OSQPInt   P_p[3] = { 0, 1, 3, };
-  // OSQPFloat q[2]   = { 1.0, 1.0, };
-  // OSQPFloat A_x[4] = { 1.0, 1.0, 1.0, 1.0, };
-  // OSQPInt   A_nnz  = 4;
-  // OSQPInt   A_i[4] = { 0, 1, 0, 2, };
-  // OSQPInt   A_p[3] = { 0, 2, 4, };
-  // OSQPFloat l[3]   = { 1.0, 0.0, 0.0, };
-  // OSQPFloat u[3]   = { 1.0, 0.7, 0.7, };
-  // OSQPInt   n = 2;
-  // OSQPInt   m = 3;
-  // Problem dimensions
-  OSQPInt n = 2;
-  OSQPInt m = 3;
-
-  // Cost function
-  OSQPFloat P_x[3] = {4.0, 1.0, 2.0};
-  OSQPInt   P_i[3] = {0,   0,   1};
-  OSQPInt   P_p[3] = {0,   1,   3};
-  OSQPFloat q[2]   = {1.0, 1.0};
-
-  // Constraints
-  OSQPFloat A_x[4] = {1.0, 1.0, 1.0, 1.0};
-  OSQPInt   A_i[4] = {0,   1,   0,   2};
-  OSQPInt   A_p[3] = {0,   2,   4};
-  OSQPFloat l[3]   = {1.0, 0.0, 0.0};
-  OSQPFloat u[3]   = {1.0, 0.7, 0.7};
-
-  // Non-zero counts
-  OSQPInt P_nnz = 3;
-  OSQPInt A_nnz = 4;
-
+  OSQPFloat P_x[3] = { 4.0, 1.0, 2.0, };
+  OSQPInt   P_nnz  = 3;
+  OSQPInt   P_i[3] = { 0, 0, 1, };
+  OSQPInt   P_p[3] = { 0, 1, 3, };
+  OSQPFloat q[2]   = { 1.0, 1.0, };
+  OSQPFloat A_x[4] = { 1.0, 1.0, 1.0, 1.0, };
+  OSQPInt   A_nnz  = 4;
+  OSQPInt   A_i[4] = { 0, 1, 0, 2, };
+  OSQPInt   A_p[3] = { 0, 2, 4, };
+  OSQPFloat l[3]   = { 1.0, 0.0, 0.0, };
+  OSQPFloat u[3]   = { 1.0, 0.7, 0.7, };
+  OSQPInt   n = 2;
+  OSQPInt   m = 3;
 
   /* Exitflag */
   OSQPInt exitflag;

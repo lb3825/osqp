@@ -658,7 +658,6 @@ OSQPInt osqp_solve(OSQPSolver *solver) {
   OSQPInt can_print = 0;             // boolean, whether to print or not
   OSQPInt can_adapt_rho = 0;         // boolean, adapt rho or not
   OSQPInt can_check_termination = 0; // boolean, check termination or not
-  OSQPInt did_restart = 0;           // boolean, restart or not
 
   OSQPWorkspace* work;
   OSQPSettings*  settings;
@@ -715,35 +714,19 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
 
   // Main ADMM algorithm
 
-  // FILE *fp = fopen("../plot/residuals.csv", "w");
-  // if (fp == NULL) {
-  //   perror("Unable to open file");
-  //   exitflag = 1;
-  //   goto exit;
-  // }
-
-  // fprintf(fp, "iteration,prim_res,dual_res,duality_gap,restart\n");
-
   max_iter = settings->max_iter;
   for (iter = 1; iter <= max_iter; iter++) {
     osqp_profiler_sec_push(OSQP_PROFILER_SEC_ADMM_ITER);
-    did_restart = 0;
-    // c_print("work->v at beggining of loop %f\n", OSQPVectorf_data(work->v)[0]);
-    // c_print("work->x at beggining of loop %f\n", OSQPVectorf_data(work->x)[0]);
 
     // Update x_prev, z_prev, v_prev (preallocated, no malloc)
-    // swap_vectors(&(work->x), &(work->x_prev));
-    // swap_vectors(&(work->z), &(work->z_prev));
-    // swap_vectors(&(work->v), &(work->v_prev));
-    OSQPVectorf_copy(work->x_prev, work->x);
-    OSQPVectorf_copy(work->z_prev, work->z);
-    OSQPVectorf_copy(work->v_prev, work->v);
-
-    // c_print("work->v at beggining of loop %f\n", OSQPVectorf_data(work->v)[0]);
-    // c_print("work->x at beggining of loop %f\n", OSQPVectorf_data(work->x)[0]);
+    swap_vectors(&(work->x), &(work->x_prev));
+    swap_vectors(&(work->z), &(work->z_prev));
+    swap_vectors(&(work->v), &(work->v_prev));
+    // OSQPVectorf_copy(work->x_prev, work->x);
+    // OSQPVectorf_copy(work->z_prev, work->z);
+    // OSQPVectorf_copy(work->v_prev, work->v);
 
     // // Update norm_prev
-    // work->norm_prev = work->norm_cur
 
     /* ADMM STEPS */
     /* Compute \tilde{x}^{k+1}, \tilde{z}^{k+1} */
@@ -770,42 +753,12 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
     /* Reflected Halpern Step*/
     // Pure Reflected Halpern prior to first restart
     if (iter < settings->ini_rest_len) {
-      // compute_obj_val_dual_gap(solver, work->x, work->y,
-      //                        &(solver->info->obj_val),
-      //                        &(solver->info->dual_obj_val),
-      //                        &(solver->info->duality_gap));
-      // c_print("Testing at iter %d obj %f\n", iter, solver->info->obj_val);
-      // c_print("last_rest_iter %d\n", work->last_rest_iter);
-      // c_print("iter - last_rest_iter %d", iter - work->last_rest_iter);
       update_reflected_halpern(solver, iter - work->last_rest_iter);
-      // if (iter == 4)
-      //   break;
-      // break;
-      // compute_obj_val_dual_gap(solver, work->x, work->y,
-      //                        &(solver->info->obj_val),
-      //                        &(solver->info->dual_obj_val),
-      //                        &(solver->info->duality_gap));
-      // c_print("Testing at iter %d value of %f\n", iter, solver->info->obj_val);
     }
     // First restart
     else if (iter == settings->ini_rest_len) {
       can_adapt_rho = 1;
-      did_restart = 1;
       info->restart += 1;
-
-      // update_info(solver, iter, 0);
-      // c_print("\nFirst Restart\n");
-      // c_print("iter %d, last_rest_iter %d \n", iter, work->last_rest_iter);
-
-      // Add rho update here
-      // osqp_profiler_event_mark(OSQP_PROFILER_EVENT_RHO_UPDATE);
-      // c_print("Rho Update at restart iter = %d \n", iter);
-      // if (adapt_rho(solver)) {
-      //     c_eprint("Failed rho update");
-      //     exitflag = 1;
-      //     goto exit;
-      // }
-      // c_print("can_adapt_rho after adapting rho (first time) %d\n", can_adapt_rho);
 
       // Update x_outer, v_outer
       OSQPVectorf_copy(work->x_outer, work->x);
@@ -825,7 +778,6 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
 
         // Update work->norm_outer
         work->norm_outer = work->norm_cur;
-        // c_print("\nUpdating Outer Norm = %f\n", work->norm_outer);
       }
       else {
         // Update work->norm_cur
@@ -833,23 +785,9 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
 
         // Check if restart condition is satisfied
         can_adapt_rho = should_restart(solver);
-        // c_print("Comparing norms. (norm_cur = %f), (norm_outer = %f)\n", work->norm_cur, work->norm_outer);
 
         if (can_adapt_rho) {
-          did_restart = 1;
           info->restart += 1;
-          // c_print("\nNew Restart\n");
-          // c_print("iter %d, last_rest_iter %d \n", iter, work->last_rest_iter);
-
-          // Add rho update here
-          // osqp_profiler_event_mark(OSQP_PROFILER_EVENT_RHO_UPDATE);
-          // c_print("Rho Update at restart iter = %d \n", iter);
-          // if (adapt_rho(solver)) {
-          //     c_eprint("Failed rho update");
-          //     exitflag = 1;
-          //     goto exit;
-          // }
-          // c_print("can_adapt_rho after adapting rho (inside loop) %d\n", can_adapt_rho);
 
           // Update x_outer, v_outer
           OSQPVectorf_copy(work->x_outer, work->x);
@@ -859,7 +797,6 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
           work->last_rest_iter = iter;
         }
         else {
-          // c_print("Performing a Reflected Halpern step as no restarts are triggered\n");
           update_reflected_halpern(solver, iter - work->last_rest_iter);
         }
       }
@@ -1013,10 +950,6 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
       update_info(solver, iter, 0);
     }
 
-    // Saving prim_res, dual_res, duality_gap, and did_restart to csv
-    // fprintf(fp, "%d,%f,%f,%f,%d\n", 
-    //   iter, solver->info->prim_res, solver->info->dual_res, solver->info->duality_gap, did_restart);
-
     // Check algorithm termination if desired
     if (can_check_termination) {
       if (check_termination(solver, 0)) {
@@ -1041,7 +974,6 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
     // Actually update rho if requested
     if(can_adapt_rho) {
       osqp_profiler_event_mark(OSQP_PROFILER_EVENT_RHO_UPDATE);
-      // c_print("\nRho Update at iter = %d \n", iter);
 
       if (adapt_rho(solver)) {
         c_eprint("Failed rho update");
@@ -1063,9 +995,6 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
     }
 #endif /* ifdef OSQP_ENABLE_PRINTING */
   }        // End of ADMM for loop
-
-  // // Close csv file
-  // fclose(fp);
 
 
   // Update information and check termination condition if it hasn't been done
