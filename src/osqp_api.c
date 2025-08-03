@@ -641,6 +641,7 @@ OSQPInt osqp_solve(OSQPSolver *solver) {
   OSQPInt can_print = 0;             // boolean, whether to print or not
   OSQPInt can_adapt_rho = 0;         // boolean, adapt rho or not
   OSQPInt can_check_termination = 0; // boolean, check termination or not
+  OSQPInt did_restart = 0;
 
   OSQPWorkspace* work;
   OSQPSettings*  settings;
@@ -694,6 +695,15 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
 
   // Main ADMM algorithm
 
+  FILE *fp = fopen("../../osqp/plot/residuals.csv", "w");
+  if (fp == NULL) {
+    perror("Unable to open file");
+    exitflag = 1;
+    goto exit;
+  }
+
+  fprintf(fp, "iteration,prim_res,dual_res,duality_gap,restart\n");
+
   max_iter = settings->max_iter;
   for (iter = 1; iter <= max_iter; iter++) {
     osqp_profiler_sec_push(OSQP_PROFILER_SEC_ADMM_ITER);
@@ -720,6 +730,9 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
 
     /* Compute y^{k+1} */
     update_y(solver);
+
+    // fprintf(fp, "%d,%.3e,%.3e,%.3e,%d\n", 
+    //   iter, solver->info->prim_res, solver->info->dual_res, solver->info->duality_gap, did_restart);
 
     /* End of ADMM Steps */
     osqp_profiler_sec_pop(OSQP_PROFILER_SEC_ADMM_UPDATE);
@@ -845,7 +858,7 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
     can_adapt_rho = 0;
 #endif /* OSQP_EMBEDDED_MODE != 1 */
 
-    if(can_check_termination || can_print || can_adapt_rho || iter == 1) {
+    if(can_check_termination || can_print || can_adapt_rho || iter >= 0) {
       // We must update the info in these cases:
       // * We will be checking termination
       // * We will be printing status
@@ -859,6 +872,8 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
     // Check algorithm termination if desired
     if (can_check_termination) {
       if (check_termination(solver, 0)) {
+        fprintf(fp, "%d,%.3e,%.3e,%.3e,%d\n", 
+          iter, solver->info->prim_res, solver->info->dual_res, solver->info->duality_gap, did_restart);
         // Terminate algorithm
         break;
       }
@@ -877,6 +892,8 @@ osqp_profiler_sec_push(OSQP_PROFILER_SEC_OPT_SOLVE);
       }
     }
 
+    fprintf(fp, "%d,%.3e,%.3e,%.3e,%d\n", 
+      iter, solver->info->prim_res, solver->info->dual_res, solver->info->duality_gap, did_restart);
     // Actually update rho if requested
     if(can_adapt_rho) {
       osqp_profiler_event_mark(OSQP_PROFILER_EVENT_RHO_UPDATE);
